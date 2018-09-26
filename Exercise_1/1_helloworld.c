@@ -9,6 +9,8 @@ int main( int argc, char **argv)
     int namelen;
     char procname[MPI_MAX_PROCESSOR_NAME];
 
+	// this is comment
+
     MPI_Init(&argc, &argv); // Initialize MPI
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
