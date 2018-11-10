@@ -4,9 +4,9 @@
 #include <math.h>
 #include "pgmio.h"
 
-#define WIDTH 256
-#define HEIGHT 192
-#define MAX_ITERS 10000
+#define WIDTH 512
+#define HEIGHT 384
+#define MAX_ITERS 1000
 
 int main(int argc, char const *argv[])
 {
@@ -18,7 +18,7 @@ int main(int argc, char const *argv[])
 
   // Declaring input file
   char *filename;
-  filename = "edge256x192.pgm";
+  filename = "edge512x384.pgm";
 
   // Import file to image array
   printf("\nReading <%s>\n", filename);
@@ -26,6 +26,7 @@ int main(int argc, char const *argv[])
   printf("\n");
 
   int i, j = 0;
+
 
   // Copying image to edge array
   for(i = 1 ; i < WIDTH + 1; ++i){
@@ -63,7 +64,6 @@ int main(int argc, char const *argv[])
       image[i-1][j-1] = old[i][j];
     }
   }
-
   
   // Export image to output file
   char *outputfile;
