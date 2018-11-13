@@ -2,15 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "pgmio.h"
 
-#define WIDTH 512
-#define HEIGHT 384
-#define MAX_ITERS 1000
+#define WIDTH 192
+#define HEIGHT 128
+#define MAX_ITERS 500000
 
 int main(int argc, char const *argv[])
 {
-  printf("bkpt\n");
+  clock_t start, end;
+  start = clock();
+  double cpu_time_used;
+
   double image[WIDTH][HEIGHT]; // Array containing the original pgm file
   double edge[WIDTH + 2][HEIGHT + 2];
   double old[WIDTH + 2][HEIGHT + 2];
@@ -18,7 +22,7 @@ int main(int argc, char const *argv[])
 
   // Declaring input file
   char *filename;
-  filename = "edge512x384.pgm";
+  filename = "edge192x128.pgm";
 
   // Import file to image array
   printf("\nReading <%s>\n", filename);
@@ -70,6 +74,9 @@ int main(int argc, char const *argv[])
   outputfile = "out.pgm";
   printf("\nWriting %s\n", outputfile);
   pgmwrite(outputfile, image, WIDTH, HEIGHT);
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  printf("Finished %d iterations in %f seconds\n", MAX_ITERS, cpu_time_used);
   
   return 0;
 }

@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
+#include <time.h>
+
 #include "pgmio.h"
 
 #define WIDTH 192
@@ -11,13 +13,17 @@
 #define PWIDTH WIDTH/PROCS
 #define PHEIGHT HEIGHT
 
-#define MAX_ITERS 100000
+#define MAX_ITERS 500000
 
 
 void checkNumberOfArgs(char *argument, int world_size);
 
 int main(int argc, char *argv[])
 {  
+  clock_t start, end;
+  start = clock();
+  double cpu_time_used;
+
   double master_image[WIDTH][HEIGHT]; // Array for master process
   double image[WIDTH][HEIGHT]; // Array for each other process
   double edge[PWIDTH + 2][PHEIGHT + 2];
@@ -108,9 +114,12 @@ int main(int argc, char *argv[])
     outputfile = "out.pgm";
     printf("\nWriting %s\n", outputfile);
     pgmwrite(outputfile, &master_image[0][0], WIDTH, HEIGHT);
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Finished %d iterations in %f seconds\n", MAX_ITERS, cpu_time_used);
   }
-
   MPI_Finalize();
+ 
 }
 
 void checkNumberOfArgs(char *argument, int world_size){
