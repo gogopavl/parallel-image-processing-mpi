@@ -13,7 +13,7 @@
 #define PWIDTH WIDTH/PROCS
 #define PHEIGHT HEIGHT
 
-#define MAX_ITERS 500000
+#define MAX_ITERS 1500
 
 
 void checkNumberOfArgs(char *argument, int world_size);
@@ -39,6 +39,9 @@ int main(int argc, char *argv[])
   int this_rank; // get rank id
   MPI_Comm_rank(MPI_COMM_WORLD, &this_rank);
 
+  int decomposition_parameters[2]; // used to store the decomposition parameters
+  MPI_Dims_create(PROCS, 2, &decomposition_parameters[0]); // funtion to decide how to split image among processes
+
   int next_rank, previous_rank;
 
   next_rank = this_rank + 1;
@@ -51,6 +54,7 @@ int main(int argc, char *argv[])
   }
   
   if(this_rank == 0){
+    printf("Suggested decomposition_parameters: x axis = %d and y axis = %d", decomposition_parameters[0], decomposition_parameters[1]);
     // Declaring input file
     char *filename;
     filename = "edge192x128.pgm";
