@@ -32,16 +32,16 @@ int main(int argc, char *argv[])
   int coord[2], id;
   int rank_up, rank_down, rank_left, rank_right;
 
-  double master_image[WIDTH][HEIGHT]; // Array for master process
-  double image[PWIDTH][PHEIGHT]; // Array for each other process
-  double edge[PWIDTH + 2][PHEIGHT + 2];
-  double old[PWIDTH + 2][PHEIGHT + 2];
-  double new[PWIDTH + 2][PHEIGHT + 2];
-  int width, height;
+  double master_image[WIDTH][HEIGHT]; // Array for master process to store initial edge image
+  double image[PWIDTH][PHEIGHT]; // Array for each process to store edge images locally
+  // double edge[PWIDTH + 2][PHEIGHT + 2];
+  double old[PWIDTH + 2][PHEIGHT + 2]; // Array for each process used for the calculation
+  double new[PWIDTH + 2][PHEIGHT + 2]; // Array for each process used for the calculation
+  int width, height; // Image width and height - pixels
 
   MPI_Init(NULL, NULL); // Initialize MPI
 
-  int world_size; // get world size
+  int world_size; // Get world size
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
   MPI_Comm comm;
@@ -52,11 +52,11 @@ int main(int argc, char *argv[])
 
   //checkNumberOfArgs(argv[0], world_size); // checking the number of arguments given
 
-  int this_rank; // get rank id
+  int this_rank; // Get rank id
   MPI_Comm_rank(comm, &this_rank);
 
-  int decomp_params[2]; // used to store the decomposition parameters
-  MPI_Dims_create(world_size, 2, &decomp_params[0]); // funtion to decide how to split image among processes
+  int decomp_params[2]; // Used to store the decomposition parameters
+  MPI_Dims_create(world_size, 2, &decomp_params[0]); // Funtion to decide how to split image among processes
 
   MPI_Cart_create(comm, 2, decomp_params, periodic, reorder, &comm2d);
 
@@ -75,7 +75,6 @@ int main(int argc, char *argv[])
     pgmread(filename, master_image, WIDTH, HEIGHT);
 
     // Send subarrays to processes
-
     MPI_Isend(&(master_image[0][HEIGHT/2]), 1, array_block, 1, 0, comm2d, &request);
     MPI_Wait(&request, &status);
     MPI_Isend(&(master_image[WIDTH/2][0]), 1, array_block, 2, 0, comm2d, &request);
@@ -84,40 +83,57 @@ int main(int argc, char *argv[])
     MPI_Wait(&request, &status);
 
     // Local copy for process 0
-    for(int i = 0 ; i < WIDTH/2 ; ++i){
-      for(int j = 0 ; j < HEIGHT/2 ; ++j){
+    int i, j;
+    for(i = 0 ; i < WIDTH/2 ; ++i){
+      for(j = 0 ; j < HEIGHT/2 ; ++j){
         image[i][j] = master_image[i][j];
       }
     }
-
-
   }
   else {
-
-    MPI_Cart_coords(comm2d, this_rank, 2, coord);
-
-    printf("I am %d and my coords are: %d and %d\n", this_rank, coord[0], coord[1]);
-
-    MPI_Cart_shift(comm2d, 0, 1, &rank_up, &rank_down);
-    MPI_Cart_shift(comm2d, 1, 1, &rank_left, &rank_right);
-
-    if(rank_left < 0){
-      rank_left = MPI_PROC_NULL;
-    }
-    if(rank_right < 0){
-      rank_right = MPI_PROC_NULL;
-    }
-
-    printf("Neighbors: left = %d right = %d up = %d down = %d\n", rank_left, rank_right, rank_up, rank_down);
-
+    // Process receives data from 0 and stores it in its local buffer (image array)
     MPI_Irecv(&image[0][0], PWIDTH*PHEIGHT, MPI_DOUBLE, 0, 0, comm2d, &request);
     MPI_Wait(&request, &status);
-
   }
+
+  // Initialize old array with edge image values
+  int i, j;
+  for(i = 0 ; i < PWIDTH+2 ; ++i){
+    for(j = 0 ; j < PHEIGHT+2 ; ++j){
+      if((i == 0)||(j == 0)||(i == PWIDTH+1)||(j == PHEIGHT+1)){
+        old[i][j] = 255; // White just to see it better in pgms for testing
+      }
+      else{
+        old[i][j] = image[i-1][j-1];
+      }
+    }
+  }
+
+  MPI_Cart_coords(comm2d, this_rank, 2, coord);
+  printf("I am %d and my coords are: %d and %d\n", this_rank, coord[0], coord[1]);
+  MPI_Cart_shift(comm2d, 0, 1, &rank_up, &rank_down);
+  MPI_Cart_shift(comm2d, 1, 1, &rank_left, &rank_right);
+  if(rank_left < 0){
+    rank_left = MPI_PROC_NULL;
+  }
+  if(rank_right < 0){
+    rank_right = MPI_PROC_NULL;
+  }
+  printf("Neighbors: left = %d right = %d up = %d down = %d\n", rank_left, rank_right, rank_up, rank_down);
+
+  MPI_Request request_array[4];
+  MPI_Irecv(&old[0][0], PHEIGHT, MPI_DOUBLE, rank_down, 0, comm2d, &request_array[0]);
+  MPI_Isend(&old[PWIDTH][0], PHEIGHT, MPI_DOUBLE, rank_up, 0, comm2d, &request_array[2]);
+  MPI_Irecv(&old[PWIDTH+1][0], PHEIGHT, MPI_DOUBLE, rank_up, 1, comm2d, &request_array[1]);
+  MPI_Isend(&old[0][0], PHEIGHT, MPI_DOUBLE, rank_down, 1, comm2d, &request_array[3]);
+
+  MPI_Status status_array[4];
+  MPI_Waitall(4, request_array, status_array);
+
 
   char out[10];
   sprintf(out, "out%d.pgm", this_rank);
-  pgmwrite(out, &image[0][0], PWIDTH, PHEIGHT);
+  pgmwrite(out, &old[0][0], PWIDTH+2, PHEIGHT+2);
 
   // char *process_out;
   // process_out = "process_out_2.pgm";
