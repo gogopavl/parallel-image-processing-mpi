@@ -75,13 +75,17 @@ int main(int argc, char *argv[])
     pgmread(filename, master_image, WIDTH, HEIGHT);
 
     // Send subarrays to processes
-    MPI_Isend(&(master_image[0][HEIGHT/2]), 1, array_block, 1, 0, comm2d, &request);
-    MPI_Wait(&request, &status);
-    MPI_Isend(&(master_image[WIDTH/2][0]), 1, array_block, 2, 0, comm2d, &request);
-    MPI_Wait(&request, &status);
-    MPI_Isend(&(master_image[WIDTH/2][HEIGHT/2]), 1, array_block, 3, 0, comm2d, &request);
-    MPI_Wait(&request, &status);
-
+    int w_index, h_index;
+    int current_process = 1;
+    for(w_index = 0; w_index < decomp_params[0]; ++w_index){
+      for(h_index = 0; h_index < decomp_params[1]; ++h_index){
+        if((w_index == 0) && (h_index == 0)){
+          continue;
+        }
+        // Change parameters!!! - should be generic
+        MPI_Issend(&master_image[w_index*PWIDTH][h_index*PHEIGHT], 1, array_block, current_process++, 0, comm2d, &request);
+      }
+    }
     // Local copy for process 0
     int i, j;
     for(i = 0 ; i < WIDTH/2 ; ++i){
@@ -92,8 +96,7 @@ int main(int argc, char *argv[])
   }
   else {
     // Process receives data from 0 and stores it in its local buffer (image array)
-    MPI_Irecv(&image[0][0], PWIDTH*PHEIGHT, MPI_DOUBLE, 0, 0, comm2d, &request);
-    MPI_Wait(&request, &status);
+    MPI_Recv(&image[0][0], PWIDTH*PHEIGHT, MPI_DOUBLE, 0, 0, comm2d, &status);
   }
 
   // Initialize old array with edge image values
@@ -113,12 +116,14 @@ int main(int argc, char *argv[])
   printf("I am %d and my coords are: %d and %d\n", this_rank, coord[0], coord[1]);
   MPI_Cart_shift(comm2d, 0, 1, &rank_up, &rank_down);
   MPI_Cart_shift(comm2d, 1, 1, &rank_left, &rank_right);
+
   if(rank_left < 0){
     rank_left = MPI_PROC_NULL;
   }
   if(rank_right < 0){
     rank_right = MPI_PROC_NULL;
   }
+
   printf("Neighbors: left = %d right = %d up = %d down = %d\n", rank_left, rank_right, rank_up, rank_down);
 
   MPI_Request request_array[4];
@@ -131,32 +136,30 @@ int main(int argc, char *argv[])
   MPI_Waitall(4, request_array, status_array);
 
 
+
+  // foo print - no reason to exist apart from satisfying me :P
   char out[10];
   sprintf(out, "out%d.pgm", this_rank);
   pgmwrite(out, &old[0][0], PWIDTH+2, PHEIGHT+2);
 
-  // char *process_out;
-  // process_out = "process_out_2.pgm";
-  // printf("~~~~~~~~~\n");
-  // pgmwrite(process_out, &image[0][0], PWIDTH, PHEIGHT);
-
-  // if(this_rank == 3){
-  //   MPI_Cart_coords(comm2d, this_rank, 2, coord);
-  //   printf("I am %d and my coords are: %d and %d\n", this_rank, coord[0], coord[1]);
-  //   MPI_Cart_shift(comm2d, 0, 1, &rank_up, &rank_down);
-  //   MPI_Cart_shift(comm2d, 1, 1, &rank_left, &rank_right);
-  //   printf("Neighbors: left = %d right = %d up = %d down = %d\n",rank_left, rank_right, rank_up, rank_down);
-  //
-  //   MPI_Irecv(&image[0][0], PWIDTH*PHEIGHT, MPI_DOUBLE, 0, 0, comm2d, &request);
-  //   MPI_Wait(&request, &status);
-  //   char *process_out;
-  //   process_out = "process_out_3.pgm";
-  //   printf("~~~~~~~~~\n");
-  //   pgmwrite(process_out, &image[0][0], PWIDTH, PHEIGHT);
-  // }
-
   if(this_rank == 0){
     // Export image to output file
+    MPI_Request request_array[PROCS-1];
+    MPI_Status status_array[PROCS-1];
+
+    int w_index, h_index;
+    int current_process = 1;
+    for(w_index = 0; w_index < decomp_params[0]; w_index++){
+      for(h_index = 0; h_index < decomp_params[1]; h_index++){
+        if((w_index == 0) && (h_index == 0)){
+          continue;
+        }
+        MPI_Recv(&master_image[w_index*PWIDTH][h_index*PHEIGHT], 1, array_block, current_process++, 0, comm2d, &status_array[current_process-1]);
+        // MPI_Irecv(&master_image[w_index*PWIDTH][h_index*PHEIGHT], 1, array_block, current_process++, 0, comm2d, &request_array[current_process-1]);
+      }
+    }
+    // MPI_Waitall(PROCS-1, request_array, status_array);
+
     char *outputfile;
     outputfile = "out.pgm";
     printf("~~~~~~~~~\n");
@@ -165,6 +168,10 @@ int main(int argc, char *argv[])
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("~~~~~~~~~\nFinished %d iterations in %f seconds\n", MAX_ITERS, cpu_time_used);
   }
+  else {
+    MPI_Issend(&image[0][0], PWIDTH*PHEIGHT, MPI_DOUBLE, 0, 0, comm2d, &request);
+  }
+
   MPI_Finalize();
 
 }
