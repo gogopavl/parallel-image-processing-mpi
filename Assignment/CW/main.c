@@ -14,7 +14,7 @@
 #define PROCS 4
 #define TRUE 1
 #define FALSE 0
-#define MAX_ITERS 100000
+#define MAX_ITERS 15000
 
 void checkNumberOfArgs(char *argument, int world_size);
 double boundaryval(int i, int m);
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
   MPI_Comm comm2d; // Topology Comm world
   int periodic[2], reorder; // Variables used for the topology creation
   periodic[0] = FALSE; //  Horizontally periodic - set to TRUE LATER
-  periodic[1] = FALSE; // Vertically periodic 
+  periodic[1] = TRUE; // Vertically periodic
   reorder = FALSE; // No reordering of processes in topology
   int this_rank_coords[2];
   int rank_up, rank_down, rank_left, rank_right;
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(comm, &this_rank);
 
   int decomp_params[2]; // Used to store the decomposition parameters
-  MPI_Dims_create(world_size, 2, &decomp_params[0]); // Funtion to decide how to split image among processes
+  MPI_Dims_create(world_size, 2, decomp_params); // Funtion to decide how to split image among processes
   MPI_Cart_create(comm, 2, decomp_params, periodic, reorder, &comm2d); // Create Cartesian Topology
 
   /* Derived Data Type Decleration */
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
   if(this_rank == 0){
     printf("~~~~~~~~~\nSuggested M split = %d and N split = %d\n", decomp_params[0], decomp_params[1]);
     char *filename;
-    filename = "img/edge192x128.pgm";
+    filename = "img/edgenew192x128.pgm";
     pgmsize(filename, &width, &height);
     printf("~~~~~~~~~\n\"%s\" width = %d and height = %d\n", filename, width, height);
     // Import file to image array
@@ -115,12 +115,7 @@ int main(int argc, char *argv[])
   int i, j;
   for(i = 0 ; i < PWIDTH+2 ; ++i){
     for(j = 0 ; j < PHEIGHT+2 ; ++j){
-      if((i == 0)||(j == 0)||(i == PWIDTH+1)||(j == PHEIGHT+1)){
-        old[i][j] = 255.0; // Boundary elements are set to white
-      }
-      else{
-        old[i][j] = image[i-1][j-1];
-      }
+        old[i][j] = 255.0; // Elements are set to white
     }
   }
 
@@ -132,11 +127,12 @@ int main(int argc, char *argv[])
   printf("I am %d, Coords:  %d and %d, Neighbors: left = %d right = %d up = %d down = %d\n", this_rank, this_rank_coords[0], this_rank_coords[1], rank_left, rank_right, rank_up, rank_down);
 
   /* SAWTOOTH VALUES - they ruin the image output :P */
+  // My index should be global!!!
   if(rank_up < 0){
     rank_up = MPI_PROC_NULL;
 
     for (j=1; j < PHEIGHT+1; ++j){
-      val = boundaryval(j, PHEIGHT);
+      val = boundaryval(j, HEIGHT);
       old[0][j] = (int)(255.0*(1.0-val));
     }
   }
@@ -144,9 +140,9 @@ int main(int argc, char *argv[])
     rank_down = MPI_PROC_NULL;
 
      for (j=1; j < PHEIGHT+1; ++j){
-      val = boundaryval(j, PHEIGHT);
+      val = boundaryval(j, HEIGHT);
       old[PWIDTH+1][j] = (int)(255.0*val);
-    }    
+    }
   }
 
   /*Foo print for testing */
@@ -159,7 +155,7 @@ int main(int argc, char *argv[])
 
   int iter;
   for(iter = 0; iter < MAX_ITERS; ++iter){
-    
+
     /* Halo Swapping */
     MPI_Request request_array[8];
     // periodic
@@ -175,7 +171,7 @@ int main(int argc, char *argv[])
     // non-periodic
     MPI_Irecv(&old[1][0], 1, column_halo, rank_left, 4, comm2d, &request_array[6]); // Receive from left
     MPI_Irecv(&old[1][PHEIGHT+1], 1, column_halo, rank_right, 3, comm2d, &request_array[7]); // Receiver from right
-    
+
     // Non-boundary element depandant calculations
     for(i = 2; i < PWIDTH; ++i){
         for(j = 2; j < PHEIGHT; ++j){
@@ -263,6 +259,6 @@ double boundaryval(int i, int m){
 
   val = 2.0*((double)(i-1))/((double)(m-1));
   if (i >= m/2+1) val = 2.0-val;
-  
+
   return val;
 }
