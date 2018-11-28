@@ -27,7 +27,7 @@
 #define MP M/P
 #define NP N
 
-#define MAXITER   1500
+#define MAXITER   5000
 #define PRINTFREQ  200
 
 int main (int argc, char **argv)
