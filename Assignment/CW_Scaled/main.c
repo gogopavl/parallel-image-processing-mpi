@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
   // filename = argv[1]; // Given argument is the path leading to the file
   filename = "img/edgenew192x128.pgm"; // Given argument is the path leading to the file  
 
-  MPI_Init(NULL, NULL); // Initialize MPI
+  MPI_Init(&argc, &argv); // Initialize MPI
 
   int world_size; // Get world size
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
