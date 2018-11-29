@@ -1,0 +1,170 @@
+~~~~~~~~~
+Suggested M split = 2 and N split = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0, Coords:  0 and 0, Neighbors: left = 1 right = 1 up = -2 down = 2
+I am 2, Coords:  1 and 0, Neighbors: left = 3 right = 3 up = 0 down = -2
+I am 1, Coords:  0 and 1, Neighbors: left = 0 right = 0 up = -2 down = 3
+I am 3, Coords:  1 and 1, Neighbors: left = 2 right = 2 up = 1 down = -2
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 15000 iterations in 0.180000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+~~~~~~~~~
+Suggested M split = 2 and N split = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0, Coords:  0 and 0, Neighbors: left = 1 right = 1 up = -2 down = 2
+I am 2, Coords:  1 and 0, Neighbors: left = 3 right = 3 up = 0 down = -2
+I am 3, Coords:  1 and 1, Neighbors: left = 2 right = 2 up = 1 down = -2
+I am 1, Coords:  0 and 1, Neighbors: left = 0 right = 0 up = -2 down = 3
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 15000 iterations in 0.260000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+~~~~~~~~~
+Suggested M split = 2 and N split = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0, Coords:  0 and 0, Neighbors: left = 1 right = 1 up = -2 down = 2
+I am 1, Coords:  0 and 1, Neighbors: left = 0 right = 0 up = -2 down = 3
+I am 2, Coords:  1 and 0, Neighbors: left = 3 right = 3 up = 0 down = -2
+I am 3, Coords:  1 and 1, Neighbors: left = 2 right = 2 up = 1 down = -2
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 15000 iterations in 0.220000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+~~~~~~~~~
+Suggested M split = 2 and N split = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0, Coords:  0 and 0, Neighbors: left = 1 right = 1 up = -2 down = 2
+I am 2, Coords:  1 and 0, Neighbors: left = 3 right = 3 up = 0 down = -2
+I am 1, Coords:  0 and 1, Neighbors: left = 0 right = 0 up = -2 down = 3
+I am 3, Coords:  1 and 1, Neighbors: left = 2 right = 2 up = 1 down = -2
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 15000 iterations in 0.240000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+~~~~~~~~~
+Suggested M split = 2 and N split = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0, Coords:  0 and 0, Neighbors: left = 1 right = 1 up = -2 down = 2
+I am 2, Coords:  1 and 0, Neighbors: left = 3 right = 3 up = 0 down = -2
+I am 1, Coords:  0 and 1, Neighbors: left = 0 right = 0 up = -2 down = 3
+I am 3, Coords:  1 and 1, Neighbors: left = 2 right = 2 up = 1 down = -2
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 15000 iterations in 0.270000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+~~~~~~~~~
+Suggested M split = 2 and N split = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0, Coords:  0 and 0, Neighbors: left = 1 right = 1 up = -2 down = 2
+I am 2, Coords:  1 and 0, Neighbors: left = 3 right = 3 up = 0 down = -2
+I am 3, Coords:  1 and 1, Neighbors: left = 2 right = 2 up = 1 down = -2
+I am 1, Coords:  0 and 1, Neighbors: left = 0 right = 0 up = -2 down = 3
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 15000 iterations in 0.260000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+~~~~~~~~~
+Suggested M split = 2 and N split = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0, Coords:  0 and 0, Neighbors: left = 1 right = 1 up = -2 down = 2
+I am 1, Coords:  0 and 1, Neighbors: left = 0 right = 0 up = -2 down = 3
+I am 3, Coords:  1 and 1, Neighbors: left = 2 right = 2 up = 1 down = -2
+I am 2, Coords:  1 and 0, Neighbors: left = 3 right = 3 up = 0 down = -2
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 15000 iterations in 0.200000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+~~~~~~~~~
+Suggested M split = 2 and N split = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0, Coords:  0 and 0, Neighbors: left = 1 right = 1 up = -2 down = 2
+I am 2, Coords:  1 and 0, Neighbors: left = 3 right = 3 up = 0 down = -2
+I am 1, Coords:  0 and 1, Neighbors: left = 0 right = 0 up = -2 down = 3
+I am 3, Coords:  1 and 1, Neighbors: left = 2 right = 2 up = 1 down = -2
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 15000 iterations in 0.260000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+~~~~~~~~~
+Suggested M split = 2 and N split = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0, Coords:  0 and 0, Neighbors: left = 1 right = 1 up = -2 down = 2
+I am 2, Coords:  1 and 0, Neighbors: left = 3 right = 3 up = 0 down = -2
+I am 1, Coords:  0 and 1, Neighbors: left = 0 right = 0 up = -2 down = 3
+I am 3, Coords:  1 and 1, Neighbors: left = 2 right = 2 up = 1 down = -2
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 15000 iterations in 0.240000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+~~~~~~~~~
+Suggested M split = 2 and N split = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0, Coords:  0 and 0, Neighbors: left = 1 right = 1 up = -2 down = 2
+I am 1, Coords:  0 and 1, Neighbors: left = 0 right = 0 up = -2 down = 3
+I am 3, Coords:  1 and 1, Neighbors: left = 2 right = 2 up = 1 down = -2
+I am 2, Coords:  1 and 0, Neighbors: left = 3 right = 3 up = 0 down = -2
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 15000 iterations in 0.240000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------

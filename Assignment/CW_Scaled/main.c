@@ -21,20 +21,20 @@ int main(int argc, char *argv[])
   clock_t start, end;
   start = clock();
   double cpu_time_used;
-
-  checkNumberOfArgs(argc); // checking the number of arguments given
+  
+  // checkNumberOfArgs(argc); // checking the number of arguments given
 
   char *filename;
-  filename = argv[1]; // Given argument is the path leading to the file
+  // filename = argv[1]; // Given argument is the path leading to the file
+  filename = "img/edgenew192x128.pgm"; // Given argument is the path leading to the file  
 
-  MPI_Init(&argc, &argv); // Initialize MPI
+  MPI_Init(NULL, NULL); // Initialize MPI
+
+  int world_size; // Get world size
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
   MPI_Comm comm;
   comm = MPI_COMM_WORLD; // Shorten name of MPI_COMM_WORLD
-
-  int world_size; // Get world size
-  MPI_Comm_size(comm, &world_size);
-  printf("Comm size = %d\n",world_size);
 
   MPI_Status status;
   MPI_Request request;
@@ -47,33 +47,33 @@ int main(int argc, char *argv[])
   int decomp_params[2]; // Used to store the decomposition parameters
   int dimensions_array[4]; // Used to broadcast image dimensions to processes
 
+  decomp_params[0] = 0;
+  decomp_params[1] = 0;  
+  MPI_Dims_create(world_size, 2, decomp_params); // Funtion to decide how to split image
+  
   if(this_rank == 0){
-
-    MPI_Dims_create(world_size, 2, decomp_params); // Funtion to decide how to split image
     printf("Specified number of processes = %d\n", world_size);
-    printf("Suggested M (width) split = %d and N (height) split = %d\n", decomp_params[0], decomp_params[1]);
+    printf("M (width) split = %d and N (height) split = %d\n", decomp_params[0], decomp_params[1]);
     pgmsize(filename, &width, &height);
     
     pwidth = width/decomp_params[0];
     pheight = height/decomp_params[1];    
 
-    printf("~~~~~~~~~\n\"%s\" width = %d and height = %d\n", filename, width, height);
-    printf("pwidth = %d and pheight = %d\n", pwidth, pheight);
+    printf("Image \"%s\" width = %d and height = %d\n", filename, width, height);
+    printf("Each Process will handle a width = %d x height = %d part of the whole image\n", pwidth, pheight);
   }
 
   double master_image[width][height]; // Array for master process to store initial edge image
 
   if(this_rank == 0){
-    printf("~~~~~~~~~\nReading \"%s\"\n", filename);
     pgmread(filename, master_image, width, height);
-    
     dimensions_array[0] = width;
     dimensions_array[1] = height;
     dimensions_array[2] = pwidth;
     dimensions_array[3] = pheight;
   }
-  MPI_Barrier(comm);
-  MPI_Bcast(&dimensions_array[0], 4, MPI_INT, 0, comm);
+  
+  MPI_Bcast(dimensions_array, 4, MPI_INT, 0, comm);
 
   if(this_rank != 0) {
     width = dimensions_array[0];
@@ -96,10 +96,9 @@ int main(int argc, char *argv[])
   int this_row, this_col;
   int rank_up, rank_down, rank_left, rank_right;
 
-  decomp_params[0] = width/pwidth;
-  decomp_params[1] = height/pheight;
-
   MPI_Cart_create(comm, 2, decomp_params, periodic, reorder, &comm2d); // Create Cartesian Topology
+
+  
 
   /* Derived Data Type Decleration */
   // Subarrays
@@ -114,8 +113,6 @@ int main(int argc, char *argv[])
   MPI_Datatype column_halo;
   MPI_Type_vector(pwidth, 1, pheight+2, MPI_DOUBLE, &column_halo);
   MPI_Type_commit(&column_halo);
-
-  printf("I am %d %d %d\n", this_rank, pwidth, pheight);
 
   if(this_rank == 0){
     // Send subarrays to processes
@@ -161,7 +158,7 @@ int main(int argc, char *argv[])
   this_row = this_rank_coords[0];
   this_col = this_rank_coords[1];
 
-  printf("I am %d, Coords:  %d and %d, Neighbors: left = %d right = %d up = %d down = %d\n", this_rank, this_row, this_col, rank_left, rank_right, rank_up, rank_down);
+  // printf("I am %d, Coords:  %d and %d, Neighbors: left = %d right = %d up = %d down = %d\n", this_rank, this_row, this_col, rank_left, rank_right, rank_up, rank_down);
 
   // Computing Sawtooth values
   if(rank_up < 0){

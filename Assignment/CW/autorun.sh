@@ -1,9 +1,9 @@
 #!/bin/bash
 rm out.txt
 touch out.txt
-for j in `seq 1 32`;
+for j in `seq 1 10`;
 do
-	mpirun -np $j ./image_exec img/edgenew192x128.pgm  >> out.txt
+	mpirun -np 4 ./image_exec >> out.txt
 	echo "---------------------------------------" >> out.txt
 	echo "---------------------------------------" >> out.txt
 	echo "---------------------------------------" >> out.txt
