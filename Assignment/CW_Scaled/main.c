@@ -9,10 +9,10 @@
 #define TRUE 1
 #define FALSE 0
 #define MAX_ITERS 100000
-#define CHECK_FREQ 200
-#define THRESHOLD 0.001
+#define CHECK_FREQ 500
+#define THRESHOLD 0.1
 
-void checkNumberOfArgs(int argc);
+void check_num_of_args(int argc);
 double calculate_delta(double new, double old);
 double boundaryval(int i, int m);
 
@@ -22,11 +22,11 @@ int main(int argc, char *argv[])
   start = clock();
   double cpu_time_used;
   
-  // checkNumberOfArgs(argc); // checking the number of arguments given
+  check_num_of_args(argc); // checking the number of arguments given
 
   char *filename;
-  // filename = argv[1]; // Given argument is the path leading to the file
-  filename = "img/edgenew192x128.pgm"; // Given argument is the path leading to the file  
+  filename = argv[1]; // Given argument is the path leading to the file
+  // filename = "img/edgenew192x128.pgm"; // Given argument is the path leading to the file  
 
   MPI_Init(&argc, &argv); // Initialize MPI
 
@@ -48,7 +48,8 @@ int main(int argc, char *argv[])
   int dimensions_array[4]; // Used to broadcast image dimensions to processes
 
   decomp_params[0] = 0;
-  decomp_params[1] = 0;  
+  decomp_params[1] = 0;
+  width, height = 0;
   MPI_Dims_create(world_size, 2, decomp_params); // Funtion to decide how to split image
   
   if(this_rank == 0){
@@ -97,8 +98,6 @@ int main(int argc, char *argv[])
   int rank_up, rank_down, rank_left, rank_right;
 
   MPI_Cart_create(comm, 2, decomp_params, periodic, reorder, &comm2d); // Create Cartesian Topology
-
-  
 
   /* Derived Data Type Decleration */
   // Subarrays
@@ -157,8 +156,6 @@ int main(int argc, char *argv[])
   MPI_Cart_shift(comm2d, 1, 1, &rank_left, &rank_right);
   this_row = this_rank_coords[0];
   this_col = this_rank_coords[1];
-
-  // printf("I am %d, Coords:  %d and %d, Neighbors: left = %d right = %d up = %d down = %d\n", this_rank, this_row, this_col, rank_left, rank_right, rank_up, rank_down);
 
   // Computing Sawtooth values
   if(rank_up < 0){
@@ -267,7 +264,6 @@ int main(int argc, char *argv[])
       }
     }
   }
-
   // Copy old to image buffer in order to send to master process
   for (i=1; i <= pwidth; ++i){
     for (j=1; j <= pheight; ++j){
@@ -300,11 +296,10 @@ int main(int argc, char *argv[])
     // Write final image to file
     char *outputfile;
     outputfile = "out.pgm";
-    printf("~~~~~~~~~\n");
     pgmwrite(outputfile, &master_image[0][0], width, height);
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("~~~~~~~~~\nFinished %d iterations in %f seconds\n", iter, cpu_time_used);
+    printf("Finished %d iterations in %f seconds\n", iter, cpu_time_used);
   }
   else {
     // Send subarray to master process
@@ -314,7 +309,7 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-void checkNumberOfArgs(int argc){
+void check_num_of_args(int argc){
     if(argc != 2){
       fprintf(stderr, "Incorrect number of arguments.\nExpected 1 argument but received %d. \
       \nShould receive one argument which is the path leading to the file. \nExample: \
@@ -322,12 +317,12 @@ void checkNumberOfArgs(int argc){
 
       exit(1);
     }
-    
 }
 
 double calculate_delta(double new, double old){
   double difference = 0;
   difference = abs(new -old);  
+
   return difference;
 }
 
