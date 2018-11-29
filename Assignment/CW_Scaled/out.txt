@@ -1,0 +1,73 @@
+Comm size = 1
+Specified number of processes = 1
+Suggested M (width) split = 1 and N (height) split = 1
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+pwidth = 192 and pheight = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 0 192 128
+I am 0, Coords:  0 and 0, Neighbors: left = 0 right = 0 up = -2 down = -2
+Average pixel value = 254.601
+Average pixel value = 243.123
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 200 iterations in 0.020000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+Comm size = 2
+Specified number of processes = 2
+Suggested M (width) split = 2 and N (height) split = 1
+Comm size = 2
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+pwidth = 96 and pheight = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+I am 1 96 128
+I am 1, Coords:  1 and 0, Neighbors: left = 1 right = 1 up = 0 down = -2
+I am 0 96 128
+I am 0, Coords:  0 and 0, Neighbors: left = 0 right = 0 up = -2 down = 1
+Average pixel value = 254.601
+Average pixel value = 243.123
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 200 iterations in 0.020000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+Comm size = 3
+Specified number of processes = 3
+Suggested M (width) split = 3 and N (height) split = 1
+Comm size = 3
+~~~~~~~~~
+"img/edgenew192x128.pgm" width = 192 and height = 128
+pwidth = 64 and pheight = 128
+~~~~~~~~~
+Reading "img/edgenew192x128.pgm"
+Comm size = 3
+I am 1 64 128
+I am 1, Coords:  1 and 0, Neighbors: left = 1 right = 1 up = 0 down = 2
+I am 0 64 128
+I am 0, Coords:  0 and 0, Neighbors: left = 0 right = 0 up = -2 down = 1
+I am 2 64 128
+I am 2, Coords:  2 and 0, Neighbors: left = 2 right = 2 up = 1 down = -2
+Average pixel value = 254.601
+Average pixel value = 243.123
+~~~~~~~~~
+Writing 192 x 128 picture into file: out.pgm
+~~~~~~~~~
+Finished 200 iterations in 0.030000 seconds
+---------------------------------------
+---------------------------------------
+---------------------------------------
+Comm size = 4
+Comm size = 4
+Comm size = 4
+Comm size = 4
+---------------------------------------
+---------------------------------------
+---------------------------------------

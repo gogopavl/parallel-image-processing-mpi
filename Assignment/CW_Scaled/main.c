@@ -6,12 +6,14 @@
 #include <time.h>
 #include "pgmio.h"
 
-#define PROCS 4
 #define TRUE 1
 #define FALSE 0
-#define MAX_ITERS 200000
+#define MAX_ITERS 100000
+#define CHECK_FREQ 200
+#define THRESHOLD 0.001
 
-void checkNumberOfArgs(char *argument, int world_size);
+void checkNumberOfArgs(int argc);
+double calculate_delta(double new, double old);
 double boundaryval(int i, int m);
 
 int main(int argc, char *argv[])
@@ -20,35 +22,36 @@ int main(int argc, char *argv[])
   start = clock();
   double cpu_time_used;
 
-  char *filename;
-  filename = "img/edgenew192x128.pgm";
-  int dimensions_array[4];
+  checkNumberOfArgs(argc); // checking the number of arguments given
 
-  MPI_Init(NULL, NULL); // Initialize MPI
+  char *filename;
+  filename = argv[1]; // Given argument is the path leading to the file
+
+  MPI_Init(&argc, &argv); // Initialize MPI
 
   MPI_Comm comm;
-  comm = MPI_COMM_WORLD;
+  comm = MPI_COMM_WORLD; // Shorten name of MPI_COMM_WORLD
 
   int world_size; // Get world size
   MPI_Comm_size(comm, &world_size);
+  printf("Comm size = %d\n",world_size);
 
   MPI_Status status;
   MPI_Request request;
-
-  //checkNumberOfArgs(argv[0], world_size); // checking the number of arguments given
-
-  int this_rank; // Get rank id
+  
+  int this_rank; // Get this rank's id
   MPI_Comm_rank(comm, &this_rank);
 
   int width, height; // Image width and height - pixels
-  int pwidth, pheight; // Process width and height dimensions  
+  int pwidth, pheight; // Process width and height - pixels  
   int decomp_params[2]; // Used to store the decomposition parameters
+  int dimensions_array[4]; // Used to broadcast image dimensions to processes
 
   if(this_rank == 0){
 
-    MPI_Dims_create(world_size, 2, &decomp_params[0]); // Funtion to decide how to split image among processes
-
-    printf("~~~~~~~~~\nSuggested M (width) split = %d and N (height) split = %d\n", decomp_params[0], decomp_params[1]);
+    MPI_Dims_create(world_size, 2, decomp_params); // Funtion to decide how to split image
+    printf("Specified number of processes = %d\n", world_size);
+    printf("Suggested M (width) split = %d and N (height) split = %d\n", decomp_params[0], decomp_params[1]);
     pgmsize(filename, &width, &height);
     
     pwidth = width/decomp_params[0];
@@ -68,24 +71,21 @@ int main(int argc, char *argv[])
     dimensions_array[1] = height;
     dimensions_array[2] = pwidth;
     dimensions_array[3] = pheight;
-    int process_iterator;
-    for(process_iterator = 1; process_iterator < world_size; ++process_iterator){
-      MPI_Issend(&dimensions_array, 4, MPI_INT, process_iterator, 0, comm, &request);
-    }
-  } 
-  else {
-    MPI_Irecv(&dimensions_array[0], 4, MPI_INT, 0, 0, comm, &request);
-    MPI_Wait(&request, &status);
+  }
+  MPI_Barrier(comm);
+  MPI_Bcast(&dimensions_array[0], 4, MPI_INT, 0, comm);
+
+  if(this_rank != 0) {
     width = dimensions_array[0];
     height = dimensions_array[1];
     pwidth = dimensions_array[2];
     pheight = dimensions_array[3];
   }
-
+  
   double image[pwidth][pheight]; // Array for each process to store edge images locally
   double old[pwidth + 2][pheight + 2]; // Array for each process used for the calculation
   double new[pwidth + 2][pheight + 2]; // Array for each process used for the calculation
-  double val;
+  double val, delta;
 
   MPI_Comm comm2d; // Topology Comm world
   int periodic[2], reorder; // Variables used for the topology creation
@@ -93,13 +93,13 @@ int main(int argc, char *argv[])
   periodic[1] = TRUE; // Vertically periodic
   reorder = FALSE; // No reordering of processes in topology
   int this_rank_coords[2];
+  int this_row, this_col;
   int rank_up, rank_down, rank_left, rank_right;
 
   decomp_params[0] = width/pwidth;
   decomp_params[1] = height/pheight;
 
   MPI_Cart_create(comm, 2, decomp_params, periodic, reorder, &comm2d); // Create Cartesian Topology
-  
 
   /* Derived Data Type Decleration */
   // Subarrays
@@ -158,16 +158,17 @@ int main(int argc, char *argv[])
   MPI_Cart_coords(comm2d, this_rank, 2, this_rank_coords);
   MPI_Cart_shift(comm2d, 0, 1, &rank_up, &rank_down);
   MPI_Cart_shift(comm2d, 1, 1, &rank_left, &rank_right);
+  this_row = this_rank_coords[0];
+  this_col = this_rank_coords[1];
 
-  printf("I am %d, Coords:  %d and %d, Neighbors: left = %d right = %d up = %d down = %d\n", this_rank, this_rank_coords[0], this_rank_coords[1], rank_left, rank_right, rank_up, rank_down);
+  printf("I am %d, Coords:  %d and %d, Neighbors: left = %d right = %d up = %d down = %d\n", this_rank, this_row, this_col, rank_left, rank_right, rank_up, rank_down);
 
-  /* SAWTOOTH VALUES - they ruin the image output :P */
-  // My index should be global!!!
+  // Computing Sawtooth values
   if(rank_up < 0){
     rank_up = MPI_PROC_NULL;
 
     for (j=1; j < pheight+1; ++j){
-      val = boundaryval(j, height);
+      val = boundaryval(j + this_col*pheight, height); // Global position of column element
       old[0][j] = (int)(255.0*(1.0-val));
     }
   }
@@ -175,14 +176,21 @@ int main(int argc, char *argv[])
     rank_down = MPI_PROC_NULL;
 
      for (j=1; j < pheight+1; ++j){
-      val = boundaryval(j, height);
+      val = boundaryval(j + this_col*pheight, height); // Global position of column element
       old[pwidth+1][j] = (int)(255.0*val);
     }
   }
 
-  int iter;
+  int iter, calc_delta;
+  calc_delta = FALSE;
   for(iter = 0; iter < MAX_ITERS; ++iter){
-
+    
+    if(iter % CHECK_FREQ == 0){
+      calc_delta = TRUE;
+    }
+    else {
+      calc_delta = FALSE;
+    }
     /* Halo Swapping */
     MPI_Request request_array[8];
     // periodic
@@ -203,6 +211,9 @@ int main(int argc, char *argv[])
     for(i = 2; i < pwidth; ++i){
         for(j = 2; j < pheight; ++j){
           new[i][j] = 0.25*(old[i-1][j] + old[i+1][j] + old[i][j-1] + old[i][j+1] - image[i-1][j-1]);
+          if(calc_delta == TRUE){
+            delta += calculate_delta(new[i][j], old[i][j]);
+          }
         }
     }
 
@@ -213,18 +224,49 @@ int main(int argc, char *argv[])
     for(i = 1; i <= pwidth; i += pwidth-1){
         for(j = 1; j <= pheight; ++j){
           new[i][j] = 0.25*(old[i-1][j] + old[i+1][j] + old[i][j-1] + old[i][j+1] - image[i-1][j-1]);
+          if(calc_delta == TRUE){
+            delta += calculate_delta(new[i][j], old[i][j]);
+          }
         }
     }
 
     for(i = 2; i < pwidth; ++i){
         for(j = 1; j <= pheight; j += pheight-1){
           new[i][j] = 0.25*(old[i-1][j] + old[i+1][j] + old[i][j-1] + old[i][j+1] - image[i-1][j-1]);
+          if(calc_delta == TRUE){
+            delta += calculate_delta(new[i][j], old[i][j]);
+          }
         }
     }
 
     for(i = 1 ; i <= pwidth; ++i){
       for(j = 1; j <= pheight; ++j){
         old[i][j] = new[i][j];
+      }
+    }
+
+    double pixel_val, avg_pixel_val;
+    double global_delta;
+
+    if(calc_delta == TRUE){
+      pixel_val = 0.0;
+      for(i = 1; i <= pwidth; ++i){
+        for(j = 1; j <= pheight; ++j){
+          pixel_val += new[i][j];
+        }
+      }
+      pixel_val /= (pwidth*pheight);
+      MPI_Reduce(&pixel_val, &avg_pixel_val, 1, MPI_DOUBLE, MPI_SUM, 0, comm2d);
+      if(this_rank == 0){
+        avg_pixel_val /= (double)world_size;
+        printf("Average pixel value = %0.3f\n", avg_pixel_val);  
+      }
+      
+      delta /= (pwidth*pheight);
+      
+      MPI_Allreduce(&delta, &global_delta, 1, MPI_DOUBLE, MPI_MAX, comm2d);
+      if(global_delta < THRESHOLD){
+        break;
       }
     }
   }
@@ -265,20 +307,31 @@ int main(int argc, char *argv[])
     pgmwrite(outputfile, &master_image[0][0], width, height);
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("~~~~~~~~~\nFinished %d iterations in %f seconds\n", MAX_ITERS, cpu_time_used);
+    printf("~~~~~~~~~\nFinished %d iterations in %f seconds\n", iter, cpu_time_used);
   }
   else {
     // Send subarray to master process
     MPI_Issend(&image[0][0], pwidth*pheight, MPI_DOUBLE, 0, 0, comm2d, &request);
   }
   MPI_Finalize();
+  return 0;
 }
 
-void checkNumberOfArgs(char *argument, int world_size){
-    if(world_size != PROCS){
-        fprintf(stderr, "World size must be 4 for %s\n", argument);
-        MPI_Abort(MPI_COMM_WORLD, 1);
+void checkNumberOfArgs(int argc){
+    if(argc != 2){
+      fprintf(stderr, "Incorrect number of arguments.\nExpected 1 argument but received %d. \
+      \nShould receive one argument which is the path leading to the file. \nExample: \
+      mpirun -np 4 ./image_exec img/edgenew192x128.pgm\n", argc-1);
+
+      exit(1);
     }
+    
+}
+
+double calculate_delta(double new, double old){
+  double difference = 0;
+  difference = abs(new -old);  
+  return difference;
 }
 
 double boundaryval(int i, int m){
