@@ -1,0 +1,20 @@
+Average pixel value = 253.969658 on iteration 500
+Max delta value = 0.000000 on iteration 500
+Number of Processes = 1
+Input I/O = 0.020000, Total iterations runtime = 0.170000, Single iteration mean runtime = 0.000340, Output I/O = 0.050000, Total runtime = 0.240000
+
+Average pixel value = 253.969658 on iteration 500
+Max delta value = 0.000000 on iteration 500
+Number of Processes = 2
+Input I/O = 0.020000, Total iterations runtime = 0.080000, Single iteration mean runtime = 0.000160, Output I/O = 0.040000, Total runtime = 0.150000
+
+Average pixel value = 251.430874 on iteration 500
+Max delta value = 0.000000 on iteration 500
+Number of Processes = 3
+Input I/O = 0.030000, Total iterations runtime = 0.070000, Single iteration mean runtime = 0.000140, Output I/O = 0.040000, Total runtime = 0.140000
+
+Average pixel value = 253.969658 on iteration 500
+Max delta value = 0.000000 on iteration 500
+Number of Processes = 4
+Input I/O = 0.040000, Total iterations runtime = 0.040000, Single iteration mean runtime = 0.000080, Output I/O = 0.050000, Total runtime = 0.130000
+
