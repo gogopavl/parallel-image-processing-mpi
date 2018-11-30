@@ -8,7 +8,7 @@ Each Process will handle a width = 768 x height = 768 part of the whole image
 Average pixel value = 254.944
 Average pixel value = 252.245
 Writing 768 x 768 picture into file: out.pgm
-Finished 500 iterations in 0.830000 seconds
+Finished 500 iterations in 0.910000 seconds
 ---------------------------------------
 ---------------------------------------
 Number of processes = 2
@@ -20,7 +20,7 @@ Each Process will handle a width = 384 x height = 768 part of the whole image
 Average pixel value = 254.944
 Average pixel value = 252.245
 Writing 768 x 768 picture into file: out.pgm
-Finished 500 iterations in 0.720000 seconds
+Finished 500 iterations in 0.780000 seconds
 ---------------------------------------
 ---------------------------------------
 Number of processes = 3
@@ -32,7 +32,7 @@ Each Process will handle a width = 256 x height = 768 part of the whole image
 Average pixel value = 254.944
 Average pixel value = 252.245
 Writing 768 x 768 picture into file: out.pgm
-Finished 500 iterations in 0.800000 seconds
+Finished 500 iterations in 0.840000 seconds
 ---------------------------------------
 ---------------------------------------
 Number of processes = 4
@@ -44,5 +44,5 @@ Each Process will handle a width = 384 x height = 384 part of the whole image
 Average pixel value = 254.944
 Average pixel value = 252.245
 Writing 768 x 768 picture into file: out.pgm
-Finished 500 iterations in 0.800000 seconds
+Finished 500 iterations in 0.710000 seconds
 ---------------------------------------

@@ -10,7 +10,7 @@ EXE=	image_exec
 
 SRC= \
 	pgmio.c \
-	main_perf.c
+	main.c
 
 INC= \
 	pgmio.h
