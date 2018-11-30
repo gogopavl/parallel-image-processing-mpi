@@ -18,9 +18,9 @@ double boundaryval(int i, int m);
 
 int main(int argc, char *argv[])
 {
-  clock_t start, end;
+  clock_t start, iotstamp, iterstart, iterend, niterstart, niterend, writeend, end;
   start = clock();
-  double cpu_time_used;
+  double sum_of_niters;
   
   check_num_of_args(argc); // checking the number of arguments given
 
@@ -53,15 +53,10 @@ int main(int argc, char *argv[])
   MPI_Dims_create(world_size, 2, decomp_params); // Funtion to decide how to split image
   
   if(this_rank == 0){
-    printf("Specified number of processes = %d\n", world_size);
-    printf("M (width) split = %d and N (height) split = %d\n", decomp_params[0], decomp_params[1]);
     pgmsize(filename, &width, &height);
     
     pwidth = width/decomp_params[0];
     pheight = height/decomp_params[1];    
-
-    printf("Image \"%s\" width = %d and height = %d\n", filename, width, height);
-    printf("Each Process will handle a width = %d x height = %d part of the whole image\n", pwidth, pheight);
   }
 
   double master_image[width][height]; // Array for master process to store initial edge image
@@ -123,7 +118,7 @@ int main(int argc, char *argv[])
         if((w_index == 0) && (h_index == 0)){
           continue; // Allocate 0,0 locally
         }
-        MPI_Isend(&master_image[w_index*pwidth][h_index*pheight], 1, array_block, current_process++, 0, comm2d, &request);
+        MPI_Issend(&master_image[w_index*pwidth][h_index*pheight], 1, array_block, current_process++, 0, comm2d, &request);
       }
     }
     // Copy subarray to local buffer (image array)
@@ -136,11 +131,10 @@ int main(int argc, char *argv[])
   }
   else {
     // Process receives data from 0 and stores it in its local buffer (image array)
-    // MPI_Irecv is better performance-wise than MPI_Recv!
-    MPI_Irecv(&image[0][0], pwidth*pheight, MPI_DOUBLE, 0, 0, comm2d, &request);
-    MPI_Wait(&request, &status);
+    MPI_Recv(&image[0][0], pwidth*pheight, MPI_DOUBLE, 0, 0, comm2d, &status);
+    // MPI_Wait(&request, &status);
   }
-
+  iotstamp = clock();
   // Initialize old subarray with edge image values
   int i, j;
   for(i = 0 ; i < pwidth+2 ; ++i){
@@ -173,11 +167,11 @@ int main(int argc, char *argv[])
       old[pwidth+1][j] = (int)(255.0*val);
     }
   }
-
+  iterstart = clock();
   int iter, calc_delta;
   calc_delta = FALSE;
   for(iter = 0; iter < MAX_ITERS; ++iter){
-    
+    niterstart = clock();    
     if(iter % CHECK_FREQ == 0){
       calc_delta = TRUE;
     }
@@ -186,19 +180,20 @@ int main(int argc, char *argv[])
     }
     /* Halo Swapping */
     MPI_Request request_array[8];
+    MPI_Status status_array[8];
     // periodic
-    MPI_Isend(&old[1][1], pheight, MPI_DOUBLE, rank_up, 1, comm2d, &request_array[0]); // Send to up - tag 1
-    MPI_Isend(&old[pwidth][1], pheight, MPI_DOUBLE, rank_down, 2, comm2d, &request_array[1]); // Send to down - tag 2
+    MPI_Issend(&old[1][1], pheight, MPI_DOUBLE, rank_up, 1, comm2d, &request_array[0]); // Send to up - tag 1
+    MPI_Issend(&old[pwidth][1], pheight, MPI_DOUBLE, rank_down, 2, comm2d, &request_array[1]); // Send to down - tag 2
     // non-periodic
-    MPI_Isend(&old[1][1], 1, column_halo, rank_left, 3, comm2d, &request_array[2]); // Send to left - tag 3
-    MPI_Isend(&old[1][pheight], 1, column_halo, rank_right, 4, comm2d, &request_array[3]); // Send to right - tag 4
+    MPI_Issend(&old[1][1], 1, column_halo, rank_left, 3, comm2d, &request_array[2]); // Send to left - tag 3
+    MPI_Issend(&old[1][pheight], 1, column_halo, rank_right, 4, comm2d, &request_array[3]); // Send to right - tag 4
 
     // periodic
-    MPI_Irecv(&old[0][1], pheight, MPI_DOUBLE, rank_up, 2, comm2d, &request_array[4]); // Receive from up
-    MPI_Irecv(&old[pwidth+1][1], pheight, MPI_DOUBLE, rank_down, 1, comm2d, &request_array[5]); // Receive from down
+    MPI_Recv(&old[0][1], pheight, MPI_DOUBLE, rank_up, 2, comm2d, &status_array[4]); // Receive from up
+    MPI_Recv(&old[pwidth+1][1], pheight, MPI_DOUBLE, rank_down, 1, comm2d, &status_array[5]); // Receive from down
     // non-periodic
-    MPI_Irecv(&old[1][0], 1, column_halo, rank_left, 4, comm2d, &request_array[6]); // Receive from left
-    MPI_Irecv(&old[1][pheight+1], 1, column_halo, rank_right, 3, comm2d, &request_array[7]); // Receiver from right
+    MPI_Recv(&old[1][0], 1, column_halo, rank_left, 4, comm2d, &status_array[6]); // Receive from left
+    MPI_Recv(&old[1][pheight+1], 1, column_halo, rank_right, 3, comm2d, &status_array[7]); // Receiver from right
 
     // Non-boundary element depandant calculations
     for(i = 2; i < pwidth; ++i){
@@ -209,9 +204,7 @@ int main(int argc, char *argv[])
           }
         }
     }
-
-    MPI_Status status_array[8];
-    MPI_Waitall(8, request_array, status_array);
+    // MPI_Waitall(8, request_array, status_array);
 
     // Boundary element depandant calculations
     for(i = 1; i <= pwidth; i += pwidth-1){
@@ -252,7 +245,6 @@ int main(int argc, char *argv[])
       MPI_Reduce(&pixel_val, &avg_pixel_val, 1, MPI_DOUBLE, MPI_SUM, 0, comm2d);
       if(this_rank == 0){
         avg_pixel_val /= (double)world_size;
-        printf("Average pixel value = %0.3f\n", avg_pixel_val);  
       }
       
       delta /= (pwidth*pheight);
@@ -262,7 +254,10 @@ int main(int argc, char *argv[])
         break;
       }
     }
+    niterend = clock();
+    sum_of_niters += (double) (niterend - niterstart);
   }
+  iterend = clock();
   // Copy old to image buffer in order to send to master process
   for (i=1; i <= pwidth; ++i){
     for (j=1; j <= pheight; ++j){
@@ -296,9 +291,15 @@ int main(int argc, char *argv[])
     char *outputfile;
     outputfile = "out.pgm";
     pgmwrite(outputfile, &master_image[0][0], width, height);
+    writeend = clock();
     end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Finished %d iterations in %f seconds\n", iter, cpu_time_used);
+    double total_time, beginio, total_iters, mean_niters, write_out;
+    beginio = ((double) (iotstamp - start)) / CLOCKS_PER_SEC;
+    total_iters = ((double) (iterend - iterstart)) / CLOCKS_PER_SEC;
+    mean_niters = ((double) (sum_of_niters/iter)) / CLOCKS_PER_SEC;
+    write_out = ((double) (writeend - iterend)) / CLOCKS_PER_SEC;
+    total_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("%d,%f,%f,%f,%f,%f\n",world_size, beginio, total_iters, mean_niters, write_out, total_time);
   }
   else {
     // Send subarray to master process

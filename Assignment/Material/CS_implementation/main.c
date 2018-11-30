@@ -5,8 +5,8 @@
 #include <time.h>
 #include "pgmio.h"
 
-#define WIDTH 192
-#define HEIGHT 128
+#define WIDTH 768
+#define HEIGHT 768
 #define MAX_ITERS 500000
 
 int main(int argc, char const *argv[])
@@ -22,7 +22,7 @@ int main(int argc, char const *argv[])
 
   // Declaring input file
   char *filename;
-  filename = "edge192x128.pgm";
+  filename = "edge768x768.pgm";
 
   // Import file to image array
   printf("\nReading <%s>\n", filename);

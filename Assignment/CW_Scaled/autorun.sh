@@ -1,8 +1,9 @@
 #!/bin/bash
+ulimit -s unlimited
 rm out.txt
 touch out.txt
 
-filename=img/edgenew192x128.pgm
+filename=img/edgenew768x768.pgm
 
 for j in `seq 1 4`;
 do

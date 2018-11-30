@@ -3,46 +3,46 @@ Number of processes = 1
 ---------------------------------------
 Specified number of processes = 1
 M (width) split = 1 and N (height) split = 1
-Image "img/edgenew192x128.pgm" width = 192 and height = 128
-Each Process will handle a width = 192 x height = 128 part of the whole image
-Average pixel value = 254.601
-Average pixel value = 235.931
-Writing 192 x 128 picture into file: out.pgm
-Finished 500 iterations in 0.040000 seconds
+Image "img/edgenew768x768.pgm" width = 768 and height = 768
+Each Process will handle a width = 768 x height = 768 part of the whole image
+Average pixel value = 254.944
+Average pixel value = 252.245
+Writing 768 x 768 picture into file: out.pgm
+Finished 500 iterations in 0.830000 seconds
 ---------------------------------------
 ---------------------------------------
 Number of processes = 2
 ---------------------------------------
 Specified number of processes = 2
 M (width) split = 2 and N (height) split = 1
-Image "img/edgenew192x128.pgm" width = 192 and height = 128
-Each Process will handle a width = 96 x height = 128 part of the whole image
-Average pixel value = 254.601
-Average pixel value = 235.931
-Writing 192 x 128 picture into file: out.pgm
-Finished 500 iterations in 0.030000 seconds
+Image "img/edgenew768x768.pgm" width = 768 and height = 768
+Each Process will handle a width = 384 x height = 768 part of the whole image
+Average pixel value = 254.944
+Average pixel value = 252.245
+Writing 768 x 768 picture into file: out.pgm
+Finished 500 iterations in 0.720000 seconds
 ---------------------------------------
 ---------------------------------------
 Number of processes = 3
 ---------------------------------------
 Specified number of processes = 3
 M (width) split = 3 and N (height) split = 1
-Image "img/edgenew192x128.pgm" width = 192 and height = 128
-Each Process will handle a width = 64 x height = 128 part of the whole image
-Average pixel value = 254.601
-Average pixel value = 235.931
-Writing 192 x 128 picture into file: out.pgm
-Finished 500 iterations in 0.040000 seconds
+Image "img/edgenew768x768.pgm" width = 768 and height = 768
+Each Process will handle a width = 256 x height = 768 part of the whole image
+Average pixel value = 254.944
+Average pixel value = 252.245
+Writing 768 x 768 picture into file: out.pgm
+Finished 500 iterations in 0.800000 seconds
 ---------------------------------------
 ---------------------------------------
 Number of processes = 4
 ---------------------------------------
 Specified number of processes = 4
 M (width) split = 2 and N (height) split = 2
-Image "img/edgenew192x128.pgm" width = 192 and height = 128
-Each Process will handle a width = 96 x height = 64 part of the whole image
-Average pixel value = 254.601
-Average pixel value = 235.931
-Writing 192 x 128 picture into file: out.pgm
-Finished 500 iterations in 0.040000 seconds
+Image "img/edgenew768x768.pgm" width = 768 and height = 768
+Each Process will handle a width = 384 x height = 384 part of the whole image
+Average pixel value = 254.944
+Average pixel value = 252.245
+Writing 768 x 768 picture into file: out.pgm
+Finished 500 iterations in 0.800000 seconds
 ---------------------------------------

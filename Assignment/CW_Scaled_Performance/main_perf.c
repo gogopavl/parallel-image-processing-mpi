@@ -18,9 +18,9 @@ double boundaryval(int i, int m);
 
 int main(int argc, char *argv[])
 {
-  clock_t start, end;
+  clock_t start, iotstamp, iterstart, iterend, niterstart, niterend, writeend, end;
   start = clock();
-  double cpu_time_used;
+  double sum_of_niters;
   
   check_num_of_args(argc); // checking the number of arguments given
 
@@ -53,15 +53,10 @@ int main(int argc, char *argv[])
   MPI_Dims_create(world_size, 2, decomp_params); // Funtion to decide how to split image
   
   if(this_rank == 0){
-    printf("Specified number of processes = %d\n", world_size);
-    printf("M (width) split = %d and N (height) split = %d\n", decomp_params[0], decomp_params[1]);
     pgmsize(filename, &width, &height);
     
     pwidth = width/decomp_params[0];
     pheight = height/decomp_params[1];    
-
-    printf("Image \"%s\" width = %d and height = %d\n", filename, width, height);
-    printf("Each Process will handle a width = %d x height = %d part of the whole image\n", pwidth, pheight);
   }
 
   double master_image[width][height]; // Array for master process to store initial edge image
@@ -140,7 +135,7 @@ int main(int argc, char *argv[])
     MPI_Irecv(&image[0][0], pwidth*pheight, MPI_DOUBLE, 0, 0, comm2d, &request);
     MPI_Wait(&request, &status);
   }
-
+  iotstamp = clock();
   // Initialize old subarray with edge image values
   int i, j;
   for(i = 0 ; i < pwidth+2 ; ++i){
@@ -173,11 +168,11 @@ int main(int argc, char *argv[])
       old[pwidth+1][j] = (int)(255.0*val);
     }
   }
-
+  iterstart = clock();
   int iter, calc_delta;
   calc_delta = FALSE;
   for(iter = 0; iter < MAX_ITERS; ++iter){
-    
+    niterstart = clock();    
     if(iter % CHECK_FREQ == 0){
       calc_delta = TRUE;
     }
@@ -252,7 +247,6 @@ int main(int argc, char *argv[])
       MPI_Reduce(&pixel_val, &avg_pixel_val, 1, MPI_DOUBLE, MPI_SUM, 0, comm2d);
       if(this_rank == 0){
         avg_pixel_val /= (double)world_size;
-        printf("Average pixel value = %0.3f\n", avg_pixel_val);  
       }
       
       delta /= (pwidth*pheight);
@@ -262,7 +256,10 @@ int main(int argc, char *argv[])
         break;
       }
     }
+    niterend = clock();
+    sum_of_niters += (double) (niterend - niterstart);
   }
+  iterend = clock();
   // Copy old to image buffer in order to send to master process
   for (i=1; i <= pwidth; ++i){
     for (j=1; j <= pheight; ++j){
@@ -296,9 +293,15 @@ int main(int argc, char *argv[])
     char *outputfile;
     outputfile = "out.pgm";
     pgmwrite(outputfile, &master_image[0][0], width, height);
+    writeend = clock();
     end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Finished %d iterations in %f seconds\n", iter, cpu_time_used);
+    double total_time, beginio, total_iters, mean_niters, write_out;
+    beginio = ((double) (iotstamp - start)) / CLOCKS_PER_SEC;
+    total_iters = ((double) (iterend - iterstart)) / CLOCKS_PER_SEC;
+    mean_niters = ((double) (sum_of_niters/iter)) / CLOCKS_PER_SEC;
+    write_out = ((double) (writeend - iterend)) / CLOCKS_PER_SEC;
+    total_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("%d,%f,%f,%f,%f,%f\n",world_size, beginio, total_iters, mean_niters, write_out, total_time);
   }
   else {
     // Send subarray to master process
